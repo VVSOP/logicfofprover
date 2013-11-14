@@ -240,7 +240,7 @@ scf_merge ((f1,path1),(f2,path2),(F (Identity (BinOp op1 (:|:) op2))),path)
 scf_negate x = (F (Identity ((:~:) x)))
 
 --main (List of AFormula)
-scf x = scf_top(get_formula(get_list_element(x)))
+scf x = scf_top(preprocess(x))
 
 --top level (conjunctions)
 scf_top (F (Identity (BinOp op1 (:&:) op2)))= (F (Identity (BinOp (scf_top(op1)) (:&:) (scf_top(op2)))))
@@ -332,7 +332,7 @@ dcf_merge ((f1,path1),(f2,path2),(F (Identity (BinOp op1 (:|:) op2))),path)
 dcf_negate x = (F (Identity ((:~:) x)))
 
 --main
-dcf x = dcf_top(get_formula(get_list_element(x)))
+dcf x = dcf_top(preprocess(x))
 
 --top level (disjunctions)
 dcf_top (F (Identity (BinOp op1 (:|:) op2)))= (F (Identity (BinOp (dcf_top(op1)) (:|:) (dcf_top(op2)))))
