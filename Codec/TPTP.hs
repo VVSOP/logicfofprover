@@ -15,6 +15,9 @@ import Codec.TPTP.Diff
 
 import Data.Functor.Identity
 
+
+
+
 --test strings
 t_a = parse "fof(test,axiom,~(a&b))."
 t_b = parse "fof(test,axiom,(~a&b))."
@@ -50,10 +53,9 @@ t_scf4 = parse "fof(test,axiom,(a&~(x&y))=>d)."
 
 --Misc
 
---Listof AFOrmula
+--Listof AFormula
 get_list_element (x:xs)= x
-
---always used first
+--formula within AFormula
 get_formula (AFormula a b c d) = c
 
 enter_formula (F x) = x
@@ -92,13 +94,9 @@ preprocess f = quantor_main(equality_main(get_formula(get_list_element(f))))
 
 
 
-
-
-
-
-
-
 --replace equalities
+-- a<=>b -> a&b|~a&~b
+-- a<~>b -> ~(a&b|~a&~b)
 
 equality_main f = find_eq_f f
 
@@ -160,6 +158,7 @@ r_v_f ((F (Identity (Quant t (c:cs) op1))),vars,path)	= (F (Identity (Quant t (r
 --rename quantor
 r_v_r_q (c,p) = r_v_r_q_r (c,p,(length(c))-1)
 
+-rename quantor recursive
 r_v_r_q_r ([],p,q)=[]
 r_v_r_q_r ((V c):cs,p,q) = (V (p++(show(q)))):(r_v_r_q_r(cs,p,q-1))
 
@@ -184,6 +183,7 @@ r_v_c ((V c),(V v, s):vs,p)
 
 r_v_r (c,v) = r_v_r_r (c,v,v)
 
+--rename recursive
 r_v_r_r ([],v,x)= []
 r_v_r_r ((T (Identity (Var (V c)))):cs,[],x) = (T (Identity (Var (V c)))):(r_v_r(cs,x))
 r_v_r_r ((T (Identity (Var (V c)))):cs,(V v,s):vs,x)
