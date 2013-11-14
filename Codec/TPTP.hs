@@ -42,8 +42,6 @@ enter_binop (BinOp a x b) =  a
 
 step x = enter_binop(enter_identity(enter_formula(x)))
 
-
-
 walk_t [] = []
 walk_t ((T (Identity ( Var v))):[]) = ((T (Identity( Var v))):[])
 walk_t ((T (Identity ( Var v))):xs) = ((T (Identity( Var v))):walk_t(xs))
@@ -71,46 +69,37 @@ scf_top (F (Identity (BinOp op1 (:&:) op2)))= (F (Identity (BinOp (scf_top(op1))
 scf_top (F (Identity (PredApp aw t))) = (F (Identity (PredApp aw t)))
 scf_top (F (Identity ((:~:) (F (Identity (PredApp aw t)))))) = (F (Identity ((:~:) (F (Identity (PredApp aw t))))))
 scf_top (F (Identity( (:~:) (F (Identity( ((:~:) op1))))))) = scf_top(op1)
-scf_top x = scf_bot(x)
+--scf_top x = scf_wrap(scf_dis_b (x,[]))
+scf_top x = x
 
---bot level (disjunctions)
+--transformation level (disjunctions)
 
-scf_bot (F (Identity (PredApp aw t))) = (F (Identity (PredApp aw t)))
-scf_bot (F (Identity ((:~:) (F (Identity (PredApp aw t)))))) = (F (Identity ((:~:) (F (Identity (PredApp aw t))))))
+--anchor
+scf_dis_b ((F (Identity (PredApp aw t))),path) 							= ((F (Identity (PredApp aw t))) 							,path)
+scf_dis_b ((F (Identity ((:~:) (F (Identity (PredApp aw t)))))),path) 	= ((F (Identity ((:~:) (F (Identity (PredApp aw t)))))) 	,path)
 
-scf_bot (F (Identity (BinOp op1 (:|:)  op2))) = (F (Identity (BinOp (scf_bot(op1)) (:|:) (scf_bot(op2)))))
-scf_bot (F (Identity ((:~:) (F (Identity (BinOp op1 (:~|:)  op2)))))) = (F (Identity (BinOp (scf_bot(op1)) (:|:) (scf_bot(op2)))))
+--beta
+scf_dis_b ((F (Identity (BinOp op1 (:|:) op2))) 						,path) = scf_merge(scf_dis_b(op1,path++["L"]),scf_dis_b(op2,path++["R"]),(F (Identity (BinOp op1 (:|:) op2))),path)
+scf_dis_b ((F (Identity ((:~:) (F (Identity (BinOp op1 (:~|:) op2)))))) ,path) = scf_merge(scf_dis_b(op1,path++["L"]),scf_dis_b(op2,path++["R"]),(F (Identity (BinOp op1 (:|:) op2))),path)
+scf_dis_b ((F (Identity( (:~:) (F (Identity( ((:~:) op1))))))) 			,path) = scf_dis_b (op1,path)
+scf_dis_b ((F (Identity (BinOp op1 (:=>:) op2))) 						,path) = scf_dis_b ((F (Identity (BinOp (scf_negate(op1)) (:|:) op2))) 				,path)
+scf_dis_b ((F (Identity (BinOp op1 (:<=:) op2))) 						,path) = scf_dis_b ((F (Identity (BinOp op1 			  (:|:) (scf_negate(op2))))),path)
+scf_dis_b ((F (Identity (BinOp op1 (:~&:)  op2)))						,path) = scf_dis_b ((F (Identity (BinOp (scf_negate(op1)) (:|:) (scf_negate(op2))))),path)
+scf_dis_b ((F (Identity ((:~:) (F (Identity (BinOp op1 (:&:) op2)))))) 	,path) = scf_dis_b ((F (Identity (BinOp (scf_negate(op1)) (:|:) (scf_negate(op2))))),path)
 
-scf_bot (F (Identity( (:~:) (F (Identity( ((:~:) op1))))))) = scf_bot(op1)
-scf_bot (F (Identity (BinOp op1 (:=>:) op2))) = scf_bot (F (Identity (BinOp (scf_negate(op1)) (:|:) op2)))
-scf_bot (F (Identity (BinOp op1 (:<=:) op2))) = scf_bot (F (Identity (BinOp op1 			  (:|:) (scf_negate(op2)))))
-scf_bot (F (Identity (BinOp op1 (:~&:)  op2)))= scf_bot (F (Identity (BinOp (scf_negate(op1)) (:|:) (scf_negate(op2)))))
-scf_bot (F (Identity ((:~:) (F (Identity (BinOp op1 (:&:) op2)))))) = scf_bot (F (Identity (BinOp (scf_negate(op1)) (:|:) (scf_negate(op2)))))
-scf_bot x = x
+--alpha
+scf_dis_b ((F (Identity (BinOp op1 (:&:) op2)))							,path) = ((F (Identity (BinOp op1 (:&:) op2)))							,path++["A"])
+scf_dis_b ((F (Identity ((:~:) (F (Identity (BinOp op1 (:|:) op2))))))	,path) = ((F (Identity ((:~:) (F (Identity (BinOp op1 (:|:) op2)))))) 	,path++["A"])
+scf_dis_b ((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:)  op2)))))),path) = ((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:)  op2)))))) ,path++["A"])
+scf_dis_b ((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:)  op2)))))),path) = ((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:)  op2)))))) ,path++["A"])
+scf_dis_b ((F (Identity (BinOp op1 (:~|:)  op2)))						,path) = ((F (Identity (BinOp op1 (:~|:)  op2)))						,path++["A"])
 
 --utility
+scf_wrap (f,path) = f
+
+scf_merge ((f1,path1),(f2,path2),(F (Identity (BinOp op1 (:|:) op2))),path)
+	|last path1 =="A"	= ((F (Identity (BinOp f1  (:|:) op2))),path1)
+	|last path2 =="A"	= ((F (Identity (BinOp op1 (:|:) f2 ))),path2)
+	|otherwise 			= ((F (Identity (BinOp op1 (:|:) op2))),path)
+
 scf_negate x = (F (Identity ((:~:) x)))
-
-
-
-
-
--- <=> | <= | => | <~> | ~| | ~& | "|" | &
---(F (Identity (BinOp op1 op op2)))
-
--- ~
---(F (Identity ((:~:) op1))
-
--- atomicword
---(F (Identity (PredApp op1)))
-
--- ! | ?
---type = All | Exists
---cont = [V "A",...]
---(F (Identity (Quant type cont op1)))
-
--- part of predicate
---(T (Identity (Var (V x))))
-
-tb_negate_binop (BinOp op1 (:&:) op2) = (BinOp op1 (:|:) op2)
-tb_negate_binop (BinOp op1 (:|:) op2) = (BinOp op1 (:&:) op2)
