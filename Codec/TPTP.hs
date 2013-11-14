@@ -69,8 +69,7 @@ scf_top (F (Identity (BinOp op1 (:&:) op2)))= (F (Identity (BinOp (scf_top(op1))
 scf_top (F (Identity (PredApp aw t))) = (F (Identity (PredApp aw t)))
 scf_top (F (Identity ((:~:) (F (Identity (PredApp aw t)))))) = (F (Identity ((:~:) (F (Identity (PredApp aw t))))))
 scf_top (F (Identity( (:~:) (F (Identity( ((:~:) op1))))))) = scf_top(op1)
---scf_top x = scf_wrap(scf_dis_b (x,[]))
-scf_top x = x
+scf_top x = scf_wrap(scf_dis_b (x,[]))
 
 --transformation level (disjunctions)
 
@@ -94,8 +93,31 @@ scf_dis_b ((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:)  op2)))))),path) =
 scf_dis_b ((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:)  op2)))))),path) = ((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:)  op2)))))) ,path++["A"])
 scf_dis_b ((F (Identity (BinOp op1 (:~|:)  op2)))						,path) = ((F (Identity (BinOp op1 (:~|:)  op2)))						,path++["A"])
 
+
+scf_dis_aX (f,path) = (F (Identity (BinOp (scf_dis_aL(f,path)) (:&:) (scf_dis_aR(f,path)))))
+
+scf_dis_aL ((F (Identity (BinOp op1 (:&:) op2)))						 ,x:[]) = op1
+scf_dis_aL ((F (Identity ((:~:) (F (Identity (BinOp op1 (:|:) op2))))))	 ,x:[]) = scf_negate(op1)
+scf_dis_aL ((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:)  op2)))))),x:[]) = op1
+scf_dis_aL ((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:)  op2)))))),x:[]) = scf_negate(op1)
+scf_dis_aL ((F (Identity (BinOp op1 (:~|:)  op2)))						 ,x:[]) = scf_negate(op1)
+scf_dis_aL ((F (Identity (BinOp op1 op op2)))							 ,x:xs)
+	|x=="L" = (F (Identity (BinOp (scf_dis_aL(op1,xs)) op op2)))
+	|x=="R" = (F (Identity (BinOp op1 op (scf_dis_aL(op2,xs)))))
+
+scf_dis_aR ((F (Identity (BinOp op1 (:&:) op2)))						 ,x:[]) = op2
+scf_dis_aR ((F (Identity ((:~:) (F (Identity (BinOp op1 (:|:) op2))))))	 ,x:[]) = scf_negate(op2)
+scf_dis_aR ((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:)  op2)))))),x:[]) = scf_negate(op2)
+scf_dis_aR ((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:)  op2)))))),x:[]) = op2
+scf_dis_aR ((F (Identity (BinOp op1 (:~|:)  op2)))						 ,x:[]) = scf_negate(op2)
+scf_dis_aR ((F (Identity (BinOp op1 op op2)))							 ,x:xs)
+	|x=="L" = (F (Identity (BinOp (scf_dis_aR(op1,xs)) op op2)))		
+	|x=="R" = (F (Identity (BinOp op1 op (scf_dis_aR(op2,xs)))))
+
 --utility
-scf_wrap (f,path) = f
+scf_wrap (f,path)
+	|last path =="A" 	= scf_dis_aX(f,path)
+	|otherwise 			= f
 
 scf_merge ((f1,path1),(f2,path2),(F (Identity (BinOp op1 (:|:) op2))),path)
 	|last path1 =="A"	= ((F (Identity (BinOp f1  (:|:) op2))),path1)
