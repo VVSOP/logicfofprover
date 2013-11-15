@@ -87,7 +87,39 @@ walk_f (F (Identity (BinOp op1 (:&:)   op2))) 	= (F (Identity (BinOp (walk_f(op1
 walk_f (F (Identity (BinOp op1 (:|:)   op2))) 	= (F (Identity (BinOp (walk_f(op1)) (:|:)   (walk_f(op2)))))
 
 
+--postProcessing
 
+readm f = ""++(readf f)
+
+readt [] = []
+readt ((T (Identity ( Var v))):[]) = ((T (Identity( Var v))):[])
+readt ((T (Identity ( Var v))):xs) = ((T (Identity( Var v))):readt(xs))
+
+readf (F (Identity (Quant All cont op1)))		= "!"++"["++readc(cont)++"]"++"("++readf(op1)++")"
+--(F (Identity (Quant All cont (readf(op1)))))
+readf (F (Identity (Quant Exists cont op1)))	= "?"++"["++readc(cont)++"]"++"("++readf(op1)++")"
+--(F (Identity (Quant Exists cont (readf(op1)))))
+readf (F (Identity (PredApp aw t)))				= reada(aw)++"("++readv(t)++")"
+--(F (Identity (PredApp aw (readt(t)))))
+readf (F (Identity ((:~:) op1)))				= "("++"~"++(readf(op1))++")"
+readf (F (Identity (BinOp op1 op op2))) 		= "("++readf(op1)++readop((:<=>:))++(readf(op2))++")"
+
+reada (AtomicWord a) = a
+
+readv [] = ""
+readv ((T (Identity (Var (V t)))):t2)=t++readv(t2)
+
+readop (:<=>:) 	= "<=>"
+readop (:<=:)	= "<="
+readop (:=>:)	= "=>"
+readop (:<~>:)	= "<~>"
+readop (:~|:)	= "~|"
+readop (:~&:)	= "~&"
+readop (:&:)	= "&"
+readop (:|:)	= "|"
+
+readc [] = ""
+readc ((V c):cs) = c++readc(cs)
 
 --preProcessing
 
@@ -159,7 +191,7 @@ r_v_f ((F (Identity (Quant t (c:cs) op1))),vars,path)	= (F (Identity (Quant t (r
 --rename quantor
 r_v_r_q (c,p) = r_v_r_q_r (c,p,(length(c))-1)
 
--rename quantor recursive
+--rename quantor recursive
 r_v_r_q_r ([],p,q)=[]
 r_v_r_q_r ((V c):cs,p,q) = (V (p++(show(q)))):(r_v_r_q_r(cs,p,q-1))
 
