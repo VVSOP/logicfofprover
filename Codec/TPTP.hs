@@ -33,7 +33,7 @@ t_scf3 = parse "fof(test,axiom,~(a&b))."
 t_scf4 = parse "fof(test,axiom,(a&~(x&y))=>d)."
 
 --notes
---LOC=163
+--LOC=185
 -- <=> | <= | => | <~> | ~| | ~& | "|" | &
 --(F (Identity (BinOp op1 op op2)))
 
@@ -96,11 +96,8 @@ readt ((T (Identity ( Var v))):[]) = ((T (Identity( Var v))):[])
 readt ((T (Identity ( Var v))):xs) = ((T (Identity( Var v))):readt(xs))
 
 readf (F (Identity (Quant All cont op1)))		= "!"++"["++readc(cont)++"]"++"("++readf(op1)++")"
---(F (Identity (Quant All cont (readf(op1)))))
 readf (F (Identity (Quant Exists cont op1)))	= "?"++"["++readc(cont)++"]"++"("++readf(op1)++")"
---(F (Identity (Quant Exists cont (readf(op1)))))
 readf (F (Identity (PredApp aw t)))				= reada(aw)++"("++readv(t)++")"
---(F (Identity (PredApp aw (readt(t)))))
 readf (F (Identity ((:~:) op1)))				= "("++"~"++(readf(op1))++")"
 readf (F (Identity (BinOp op1 op op2))) 		= "("++readf(op1)++readop((:<=>:))++(readf(op2))++")"
 
