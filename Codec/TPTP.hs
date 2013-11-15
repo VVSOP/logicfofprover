@@ -33,6 +33,7 @@ t_scf3 = parse "fof(test,axiom,~(a&b))."
 t_scf4 = parse "fof(test,axiom,(a&~(x&y))=>d)."
 
 --notes
+--LOC=163
 -- <=> | <= | => | <~> | ~| | ~& | "|" | &
 --(F (Identity (BinOp op1 op op2)))
 
@@ -146,14 +147,14 @@ r_v (f) = r_v_s (f,[],['X'])
 --search
 r_v_s ((F (Identity ((:~:) op1))),vars,path) 		= (F (Identity ((:~:) (r_v_s(op1,vars,path)))))
 r_v_s ((F (Identity (BinOp op1 op op2))),vars,path) = (F (Identity (BinOp (r_v_s(op1,vars,path++['L'])) op (r_v_s(op2,vars,path++['R'])))))
-r_v_s ((F (Identity (Quant t c op1))),vars,path)	= (F (Identity (Quant t (r_v_r_q(c,path)) (r_v_f(op1,(r_v_u(c,vars,(r_v_r_q(c,path)))),path)))))
+r_v_s ((F (Identity (Quant t c op1))),vars,path)	= (F (Identity (Quant t (r_v_r_q(c,path)) (r_v_f(op1,(r_v_u(c,vars,(r_v_r_q(c,path)))),path++['X'])))))
 r_v_s (f,vars,path) = f
 
 --found
 r_v_f ((F (Identity (PredApp aw t))),vars,path)			= (F (Identity (PredApp aw (r_v_r(t,vars)))))
 r_v_f ((F (Identity ((:~:) op1))),vars,path) 		 	= (F (Identity ((:~:) (r_v_f(op1,vars,path)))))
 r_v_f ((F (Identity (BinOp op1 op op2))),vars,path) 	= (F (Identity (BinOp (r_v_f(op1,vars,path++['L'])) op (r_v_f(op2,vars,path++['R'])))))
-r_v_f ((F (Identity (Quant t (c:cs) op1))),vars,path)	= (F (Identity (Quant t (r_v_r_q((c:cs),path)) (r_v_f(op1,(r_v_j(c:cs,vars,(r_v_r_q((c:cs),path)))),path)))))
+r_v_f ((F (Identity (Quant t (c:cs) op1))),vars,path)	= (F (Identity (Quant t (r_v_r_q((c:cs),path)) (r_v_f(op1,(r_v_j(c:cs,vars,(r_v_r_q((c:cs),path++['X'])))),path)))))
 
 --rename quantor
 r_v_r_q (c,p) = r_v_r_q_r (c,p,(length(c))-1)
