@@ -87,6 +87,14 @@ walk_f (F (Identity (BinOp op1 (:&:)   op2))) 	= (F (Identity (BinOp (walk_f(op1
 walk_f (F (Identity (BinOp op1 (:|:)   op2))) 	= (F (Identity (BinOp (walk_f(op1)) (:|:)   (walk_f(op2)))))
 
 
+
+
+
+
+
+
+
+
 --postProcessing
 
 readm f = ""++(readf f)
@@ -95,11 +103,11 @@ readt [] = []
 readt ((T (Identity ( Var v))):[]) = ((T (Identity( Var v))):[])
 readt ((T (Identity ( Var v))):xs) = ((T (Identity( Var v))):readt(xs))
 
-readf (F (Identity (Quant All cont op1)))		= "!"++"["++readc(cont)++"]"++"("++readf(op1)++")"
-readf (F (Identity (Quant Exists cont op1)))	= "?"++"["++readc(cont)++"]"++"("++readf(op1)++")"
+readf (F (Identity (Quant All cont op1)))		= "!"++"["++readc(cont)++"]"++":"++"("++readf(op1)++")"
+readf (F (Identity (Quant Exists cont op1)))	= "?"++"["++readc(cont)++"]"++":"++"("++readf(op1)++")"
 readf (F (Identity (PredApp aw t)))				= reada(aw)++"("++readv(t)++")"
 readf (F (Identity ((:~:) op1)))				= "("++"~"++(readf(op1))++")"
-readf (F (Identity (BinOp op1 op op2))) 		= "("++readf(op1)++readop((:<=>:))++(readf(op2))++")"
+readf (F (Identity (BinOp op1 op op2))) 		= "("++readf(op1)++readop(op)++(readf(op2))++")"
 
 reada (AtomicWord a) = a
 
@@ -117,6 +125,15 @@ readop (:|:)	= "|"
 
 readc [] = ""
 readc ((V c):cs) = c++readc(cs)
+
+
+
+
+
+
+
+
+
 
 --preProcessing
 
@@ -230,14 +247,13 @@ remove_quantor (F (Identity (BinOp op1 op op2))) 		= (F (Identity (BinOp (remove
 remove_quantor f = f
 
 --add quantors to beginning
-
-add_quantor (formula,(x,y)) = (F (Identity (Quant All x (F (Identity (Quant Exists y (formula)))))))
-
-
-
-
-
-
+--add_quantor (formula,(x,y)) = (F (Identity (Quant All x (F (Identity (Quant Exists y (formula)))))))
+add_quantor (formula,(x,y))
+	|x==[] 		= add_quantor_e (formula,y)
+	|otherwise 	= (F (Identity (Quant All x (add_quantor_e (formula,y)))))
+add_quantor_e (formula,y)
+	|y==[] 		= formula
+	|otherwise	= (F (Identity (Quant Exists y (formula))))
 
 
 
@@ -326,11 +342,6 @@ scf_trans_a_R ((F (Identity (BinOp op1 (:~|:)  op2)))						,"A") = scf_negate(op
 scf_trans_a_R ((F (Identity (BinOp op1 op op2)))							,x:xs)
 	|x=='L' = (F (Identity (BinOp (scf_trans_a_R(op1,xs)) op op2)))		
 	|x=='R' = (F (Identity (BinOp op1 op (scf_trans_a_R(op2,xs)))))
-
-
-
-
-
 
 
 
