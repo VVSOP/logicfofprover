@@ -10,12 +10,14 @@ isAlphaForm :: Formula -> Bool
 isAlphaForm (F (Identity (BinOp op1 op op2)))
   |op == (:&:) = True
   |op == (:~|:) = True
+  |op == (:<=>:) = True
   |otherwise = False
 isAlphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 op op2))))))
   |op == (:|:) = True
   |op ==  (:=>:) = True
   |op == (:<=:) = True
   |op == (:~&:) = True
+  |op == (:<~>:) = True
   |otherwise = False
 --isAlphaForm ((F (Identity ((:~:) op))))
 --  |op == (F (Identity (BinOp (_) (:|:) (_) ))) = True
@@ -27,10 +29,12 @@ isBetaForm (F (Identity (BinOp op1 op op2)))
   |op == (:=>:) = True
   |op == (:<=:) = True
   |op == (:~&:) = True
+  |op == (:<~>:) = True
   |otherwise = False
 isBetaForm (F (Identity ((:~:) (F (Identity (BinOp op1 op op2))))))
   |op == (:&:) = True
   |op == (:~|:) = True
+  |op == (:<=>:) = True
   |otherwise = False
 isBetaForm (F (Identity (ac))) = False  
 -- type of   "~~formula"
@@ -54,6 +58,9 @@ alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2)))))) = [double
 alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))) = [doubleNag(F (Identity ((:~:) op1))), doubleNag(op2)]
 alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:~&:) op2)))))) = [doubleNag(op1), doubleNag(op2)]
 alphaForm (F (Identity (BinOp op1 (:~|:) op2))) = [doubleNag(F (Identity ((:~:) op1))),doubleNag(F (Identity ((:~:) op2)))]
+alphaForm (F (Identity (BinOp op1 (:<=>:) op2))) = [doubleNag((F (Identity (BinOp op1 (:=>:) op2))) ), doubleNag((F (Identity (BinOp op1 (:<=:) op2))) )]
+alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<~>:) op2)))))) = [doubleNag((F (Identity (BinOp op1 (:=>:) op2)))), doubleNag((F (Identity (BinOp op1 (:<=:) op2))))]
+
 
 --beta form
 betaForm (F (Identity (BinOp op1 (:|:) op2))) = [doubleNag(op1), doubleNag(op2)]
@@ -62,6 +69,9 @@ betaForm (F (Identity (BinOp op1 (:=>:) op2))) = [doubleNag(F (Identity ((:~:) o
 betaForm (F (Identity (BinOp op1 (:<=:) op2))) = [doubleNag(op1),doubleNag(F (Identity ((:~:) op2)))]
 betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:~|:) op2)))))) = [doubleNag(op1), doubleNag(op2)]
 betaForm (F (Identity (BinOp op1 (:~&:) op2))) = [doubleNag(F (Identity ((:~:) op1))),doubleNag(F (Identity ((:~:) op2)))]
+betaForm (F (Identity (BinOp op1 (:<~>:) op2))) = [doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2))))))), doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))))]
+betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<=>:) op2)))))) = [doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2))))))), doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))))]
+
 
 --delete element form list
 deleteFromList _ [] = []
