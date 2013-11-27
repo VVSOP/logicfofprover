@@ -1,0 +1,1 @@
+fof(t3,theorem,~(a<=>b)=>((a=>b)|(b=>a))).

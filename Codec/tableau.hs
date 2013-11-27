@@ -1,9 +1,16 @@
 import Codec.TPTP
 import Data.Functor.Identity
+import System.IO.Unsafe
 
-getFormula :: [TPTP_Input] -> [Formula]
-getFormula [(AFormula _ _ a _)] = [a]
-
+getFormula ::[TPTP_Input] -> Formula
+getFormula [(AFormula _ r f _)] 
+	| str == "axiom" = f
+	| str == "conjecture" = tableauxForm f
+	where Role {unrole = str} = r
+getFormula (x:xs) = (F (Identity (BinOp fof1 (:&:) fof2)))
+	where fof1 = getFormula [x]
+	      fof2 = getFormula xs
+	
 
 --whether a form is alpha formisalphaForm (F (Identity (BinOp op1 (:&:) op2))) = True
 isAlphaForm :: Formula -> Bool
@@ -19,9 +26,8 @@ isAlphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 op op2))))))
   |op == (:~&:) = True
   |op == (:<~>:) = True
   |otherwise = False
---isAlphaForm ((F (Identity ((:~:) op))))
---  |op == (F (Identity (BinOp (_) (:|:) (_) ))) = True
 isAlphaForm (F (Identity (ac))) = False  
+
 --whether a form is beta form
 isBetaForm :: Formula -> Bool
 isBetaForm (F (Identity (BinOp op1 op op2))) 
@@ -37,6 +43,7 @@ isBetaForm (F (Identity ((:~:) (F (Identity (BinOp op1 op op2))))))
   |op == (:<=>:) = True
   |otherwise = False
 isBetaForm (F (Identity (ac))) = False  
+
 -- type of   "~~formula"
 isDoubleNag (F (Identity ((:~:) ( F (Identity ((:~:) formula)))))) = True
 isDoubleNag (F (Identity (BinOp op1 op op2))) = False
@@ -85,8 +92,9 @@ addToList2 y x z = y ++ [x] ++ [z]
 isLiter [] = True
 isLiter (x:xs) | not(isAlphaForm x) && not(isBetaForm x) && isLiter xs = True
 	       | otherwise = False
---tableauxForm :: Formula -> Formula
-tableauxForm [formula] = [doubleNag(F (Identity ((:~:) formula)))]
+
+--tableauxForm :: [Formula] -> Formula
+tableauxForm formula = doubleNag(F (Identity ((:~:) formula)))
 
 
 --tran a formula to clause form 
@@ -119,6 +127,7 @@ tranD (x:xs)
 		      t2 =  tranD (s ++ [bop2])
 		      t3 = tranD (s++[aop1]++[aop2])
 		      t4 = tranD (xs++[x])
+
 --isClosed ::[Formula]->Bool
 isClosed [] _ = False
 isClosed (x:xs) list = ((elem x list) && (elem ( F (Identity ((:~:) x)))) list) || isClosed xs list
@@ -126,10 +135,14 @@ isClosed (x:xs) list = ((elem x list) && (elem ( F (Identity ((:~:) x)))) list) 
 --closeTableaux :: [[Formula]]->[Formula]->[Formula]-> Bool
 closeTableaux [x] = isClosed x x
 closeTableaux  (x:xs) = (isClosed x x) && (closeTableaux xs)
---closeTableaux (x:xs) = ((elem x list) && (elem ( F (Identity ((:~:) x)))) list) || isClosed xs list
---  where 
-isTheorem str = closeTableaux z
+
+isTheoremStr str = closeTableaux z
   where x = parse str
 	y = getFormula x
-	d = tableauxForm y
-	z = tranD d
+	z = tranD [y]
+
+isTheoremFile file = closeTableaux z
+  where x = parseFile file
+	xx = unsafePerformIO x
+	y = getFormula xx
+	z = tranD [y]

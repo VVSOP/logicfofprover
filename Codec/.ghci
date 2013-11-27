@@ -1,0 +1,5 @@
+
+:set -package logic-TPTP
+:set prompt "\ESC[34m%s > \ESC[m"
+
+

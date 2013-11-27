@@ -1,0 +1,1 @@
+fof(nt5,theorem,a).
