@@ -1,3 +1,5 @@
+module Tableau where
+
 import Codec.TPTP
 import Data.Functor.Identity
 import System.IO.Unsafe
@@ -6,11 +8,25 @@ getFormula ::[TPTP_Input] -> Formula
 getFormula [(AFormula _ r f _)] 
 	| str == "axiom" = f
 	| str == "conjecture" = tableauxForm f
+	| str == "theorem" = tableauxForm f
+	| otherwise = error "error role!"
 	where Role {unrole = str} = r
 getFormula (x:xs) = (F (Identity (BinOp fof1 (:&:) fof2)))
 	where fof1 = getFormula [x]
 	      fof2 = getFormula xs
 	
+
+--getAtomicWord  (F (Identity (PredApp (AtomicWord x )[]))) = x
+
+isFalse :: Formula -> Bool
+isFalse (F (Identity (BinOp op1 op op2))) = False
+isFalse (F (Identity ((:~:) (F (Identity (BinOp op1 op op2)))))) = False
+isFalse (F (Identity (PredApp (AtomicWord x )[])))
+	|x=="$false" = True
+	|otherwise = False
+isFalse (F (Identity ((:~:) (F (Identity (PredApp (AtomicWord x )[]))))))
+	|x=="$true" = True
+	|otherwise = False
 
 --whether a form is alpha formisalphaForm (F (Identity (BinOp op1 (:&:) op2))) = True
 isAlphaForm :: Formula -> Bool
@@ -128,13 +144,17 @@ tranD (x:xs)
 		      t3 = tranD (s++[aop1]++[aop2])
 		      t4 = tranD (xs++[x])
 
---isClosed ::[Formula]->Bool
+isClosed ::[Formula]->[Formula]->Bool
 isClosed [] _ = False
 isClosed (x:xs) list = ((elem x list) && (elem ( F (Identity ((:~:) x)))) list) || isClosed xs list
+isClosed2 ::[Formula]->Bool
+isClosed2 [] = False
+isClosed2 (x:xs) = (isFalse x) || (isClosed2 xs)
+	
 
 --closeTableaux :: [[Formula]]->[Formula]->[Formula]-> Bool
-closeTableaux [x] = isClosed x x
-closeTableaux  (x:xs) = (isClosed x x) && (closeTableaux xs)
+closeTableaux [x] = isClosed x x || isClosed2 x
+closeTableaux  (x:xs) = ((isClosed x x)||(isClosed2 x)) && (closeTableaux xs)
 
 isTheoremStr str = closeTableaux z
   where x = parse str
