@@ -125,72 +125,43 @@ tableauxForm :: Formula -> Formula
 tableauxForm formula = doubleNag(F (Identity ((:~:) formula)))
 
 
---tran a formula to clause form 
-tran f | isLiter f = [f]
+tableauBranchBeta x list 
+	| elem ( doubleNag(F (Identity ((:~:) x))) ) list = []
+	| otherwise = list ++ [x] 
+tableauBranchAlpha x y list
+	| elem ( doubleNag(F (Identity ((:~:) x))) ) list = []
+	| elem ( doubleNag(F (Identity ((:~:) y))) ) list = []
+	| doubleNag(F (Identity ((:~:) x))) == y = []
+	| otherwise = list ++ [x] ++ [y]
 
-tran (x:xs) 
-	    | isAlphaForm x = t1++t2 
-	    | isBetaForm x = t3
-	    | otherwise = t4
-		where 
-		      [bop1,bop2] = betaForm (x)
-		      [aop1,aop2] = alphaForm (x)	
-		      s = deleteFromList x (x:xs)
-		      t1 =  tran (s ++ [aop1])
-		      t2 =  tran (s ++ [aop2])
-		      t3 = tran (s++[bop1]++[bop2])
-		      t4 = tran (xs++[x])
+branchHandle list 
+	| list == [] = []
+	| otherwise = (tranD list)
 
 tranD f | isLiter f = [f]
-
+--tranD [[]] = [[]]
 tranD (x:xs) 
-	    | isBetaForm x = t1++t2 
+	    | isBetaForm x = t1++t2
 	    | isAlphaForm x = t3
 	    | otherwise = t4
 		where 
 		      [bop1,bop2] = betaForm (x)
 		      [aop1,aop2] = alphaForm (x)	
 		      s = deleteFromList x (x:xs)
-		      t1 =  tranD (s ++ [bop1])
-		      t2 =  tranD (s ++ [bop2])
-		      t3 = tranD (s++[aop1]++[aop2])
-		      t4 = tranD (xs++[x])
+		      t1 =  branchHandle (tableauBranchBeta bop1 s)
+		      t2 =  branchHandle (tableauBranchBeta bop2 s)
+		      t3 = branchHandle (tableauBranchAlpha aop1 aop2 s)
+		      t4 = branchHandle (xs++[x])
 
-tranD2 [] = []
-tranD2 f | isLiter f = [f]
-tranD2 (x:xs) 
-	    | isBetaForm x = tableau (t1++t2) 
-	    | isAlphaForm x = tableau t3
-	    | otherwise = tableau t4
-		where 
-		      [bop1,bop2] = betaForm (x)
-		      [aop1,aop2] = alphaForm (x)	
-		      s = deleteFromList x (x:xs)
-		      t1 =  tranD2 (s ++ [bop1])
-		      t2 =  tranD2 (s ++ [bop2])
-		      t3 = tranD2 (s++[aop1]++[aop2])
-		      t4 = tranD2 (xs++[x])
 
-isClosed ::[Formula]->[Formula]->Bool
-isClosed [] _ = False
-isClosed (x:xs) list = ((elem x list) && (elem ( F (Identity ((:~:) x)))) list) || isClosed xs list
-isClosed2 ::[Formula]->Bool
-isClosed2 [] = False
-isClosed2 (x:xs) = (isFalse x) || (isClosed2 xs)
 	
 
 --closeTableaux :: [[Formula]]->[Formula]->[Formula]-> Bool
-closeTableaux [] = True
-closeTableaux [x] = isClosed x x || isClosed2 x
-closeTableaux  (x:xs) = ((isClosed x x)||(isClosed2 x)) && (closeTableaux xs)
+closeTableaux list
+	| list == [] = True
+	| otherwise = False 
 
---closeTableaux2 [[]] = True
---closeTableaux2 [x]
---	| x == [] = True
---	| otherwise = False
---closeTableaux2 (x:xs) = (closeTableaux2 [x]) && (closeTableaux2 xs)
 
---tableau :: [[Formula]]->[Formula]
 tableau x 
 	| closeTableaux x = []
 	| otherwise = x
@@ -208,9 +179,16 @@ isTheoremFile file = closeTableaux z
 	y = getFormula r
 	z = tranD [y]
 
-isTheoremFile2 file = (closeTableaux z)
+
+testFile file = z
   where x = parseFile file
 	xx = unsafePerformIO x
 	r = removeComment xx
 	y = getFormula r
-	z = tranD2 [y]
+	z = tranD [y]
+
+testStr str = z
+  where x = parse str
+	r = removeComment x
+	y = getFormula r
+	z = tranD [y]

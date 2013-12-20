@@ -18,12 +18,7 @@ provePath path = result
 	      file = addPath fofFile path
               result = format (proveFiles file)
 
-provePath2 path = result 
-	where ff = getDirectoryContents path
-	      f = unsafePerformIO ff
-	      fofFile = getFiles f
-	      file = addPath fofFile path
-              result = format (proveFiles2 file)
+
 
 isFOF :: String->Bool
 isFOF x
@@ -41,5 +36,4 @@ addPath (x:xs) path= (path ++ "/" ++ x) : addPath xs path
 proveFiles [] = []
 proveFiles (x:xs) =  ((drop 11 x) ++": "++(show (isTheoremFile x))) : proveFiles xs
 
-proveFiles2 [] = []
-proveFiles2 (x:xs) =  ((drop 11 x) ++": "++(show (isTheoremFile2 x))) : proveFiles2 xs
+
