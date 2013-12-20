@@ -66,43 +66,37 @@ isBetaForm (F (Identity ((:~:) (F (Identity (BinOp op1 op op2))))))
   |otherwise = False
 isBetaForm (F (Identity (ac))) = False  
 
--- type of   "~~formula"
-isDoubleNag :: Formula -> Bool
-isDoubleNag (F (Identity ((:~:) ( F (Identity ((:~:) formula)))))) = True
-isDoubleNag (F (Identity (BinOp op1 op op2))) = False
-isDoubleNag  ( F (Identity ((:~:) formula))) = False
---doubleNag :: [Formula]->[Formula]
-doubleNag (F (Identity ((:~:) ( F (Identity ((:~:) formula)))))) = formula
-doubleNag (F (Identity ((:~:) formula))) = ( F (Identity ((:~:) formula)))
-doubleNag (F (Identity (BinOp op1 op op2))) = (F (Identity (BinOp op1 op op2)))
-doubleNag (F (Identity (PredApp aw t))) = (F (Identity (PredApp aw t)))
---doubleNag [(F (Identity ((:~:) (F (Identity (BinOp op1 op op2)))))) ] = [(F (Identity ((:~:) (F (Identity (BinOp op1 op op2)))))) ]
 
-isAtomicWord :: AtomicWord->Bool
-isAtomicWord _ = True
+--doubleNagHandle :: [Formula]->[Formula]
+doubleNagHandle (F (Identity ((:~:) ( F (Identity ((:~:) formula)))))) = formula
+doubleNagHandle (F (Identity ((:~:) formula))) = ( F (Identity ((:~:) formula)))
+doubleNagHandle (F (Identity (BinOp op1 op op2))) = (F (Identity (BinOp op1 op op2)))
+doubleNagHandle (F (Identity (PredApp aw t))) = (F (Identity (PredApp aw t)))
+--doubleNagHandle [(F (Identity ((:~:) (F (Identity (BinOp op1 op op2)))))) ] = [(F (Identity ((:~:) (F (Identity (BinOp op1 op op2)))))) ]
+
 
 --alpha form
 alphaForm :: Formula -> [Formula]
-alphaForm (F (Identity (BinOp op1 (:&:) op2))) = [doubleNag(op1), doubleNag(op2)]
-alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:|:) op2)))))) = [doubleNag(F (Identity ((:~:) op1))),doubleNag(F (Identity ((:~:) op2)))]
-alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2)))))) = [doubleNag(op1), doubleNag(F (Identity ((:~:) op2)))]
-alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))) = [doubleNag(F (Identity ((:~:) op1))), doubleNag(op2)]
-alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:~&:) op2)))))) = [doubleNag(op1), doubleNag(op2)]
-alphaForm (F (Identity (BinOp op1 (:~|:) op2))) = [doubleNag(F (Identity ((:~:) op1))),doubleNag(F (Identity ((:~:) op2)))]
-alphaForm (F (Identity (BinOp op1 (:<=>:) op2))) = [doubleNag((F (Identity (BinOp op1 (:=>:) op2))) ), doubleNag((F (Identity (BinOp op1 (:<=:) op2))) )]
-alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<~>:) op2)))))) = [doubleNag((F (Identity (BinOp op1 (:=>:) op2)))), doubleNag((F (Identity (BinOp op1 (:<=:) op2))))]
+alphaForm (F (Identity (BinOp op1 (:&:) op2))) = [doubleNagHandle(op1), doubleNagHandle(op2)]
+alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:|:) op2)))))) = [doubleNagHandle(F (Identity ((:~:) op1))),doubleNagHandle(F (Identity ((:~:) op2)))]
+alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2)))))) = [doubleNagHandle(op1), doubleNagHandle(F (Identity ((:~:) op2)))]
+alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))) = [doubleNagHandle(F (Identity ((:~:) op1))), doubleNagHandle(op2)]
+alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:~&:) op2)))))) = [doubleNagHandle(op1), doubleNagHandle(op2)]
+alphaForm (F (Identity (BinOp op1 (:~|:) op2))) = [doubleNagHandle(F (Identity ((:~:) op1))),doubleNagHandle(F (Identity ((:~:) op2)))]
+alphaForm (F (Identity (BinOp op1 (:<=>:) op2))) = [doubleNagHandle((F (Identity (BinOp op1 (:=>:) op2))) ), doubleNagHandle((F (Identity (BinOp op1 (:<=:) op2))) )]
+alphaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<~>:) op2)))))) = [doubleNagHandle((F (Identity (BinOp op1 (:=>:) op2)))), doubleNagHandle((F (Identity (BinOp op1 (:<=:) op2))))]
 
 
 --beta form
 betaForm :: Formula -> [Formula]
-betaForm (F (Identity (BinOp op1 (:|:) op2))) = [doubleNag(op1), doubleNag(op2)]
-betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:&:) op2)))))) = [doubleNag(F (Identity ((:~:) op1))),doubleNag(F (Identity ((:~:) op2)))]
-betaForm (F (Identity (BinOp op1 (:=>:) op2))) = [doubleNag(F (Identity ((:~:) op1))), doubleNag(op2)]
-betaForm (F (Identity (BinOp op1 (:<=:) op2))) = [doubleNag(op1),doubleNag(F (Identity ((:~:) op2)))]
-betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:~|:) op2)))))) = [doubleNag(op1), doubleNag(op2)]
-betaForm (F (Identity (BinOp op1 (:~&:) op2))) = [doubleNag(F (Identity ((:~:) op1))),doubleNag(F (Identity ((:~:) op2)))]
-betaForm (F (Identity (BinOp op1 (:<~>:) op2))) = [doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2))))))), doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))))]
-betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<=>:) op2)))))) = [doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2))))))), doubleNag((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))))]
+betaForm (F (Identity (BinOp op1 (:|:) op2))) = [doubleNagHandle(op1), doubleNagHandle(op2)]
+betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:&:) op2)))))) = [doubleNagHandle(F (Identity ((:~:) op1))),doubleNagHandle(F (Identity ((:~:) op2)))]
+betaForm (F (Identity (BinOp op1 (:=>:) op2))) = [doubleNagHandle(F (Identity ((:~:) op1))), doubleNagHandle(op2)]
+betaForm (F (Identity (BinOp op1 (:<=:) op2))) = [doubleNagHandle(op1),doubleNagHandle(F (Identity ((:~:) op2)))]
+betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:~|:) op2)))))) = [doubleNagHandle(op1), doubleNagHandle(op2)]
+betaForm (F (Identity (BinOp op1 (:~&:) op2))) = [doubleNagHandle(F (Identity ((:~:) op1))),doubleNagHandle(F (Identity ((:~:) op2)))]
+betaForm (F (Identity (BinOp op1 (:<~>:) op2))) = [doubleNagHandle((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2))))))), doubleNagHandle((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))))]
+betaForm (F (Identity ((:~:) (F (Identity (BinOp op1 (:<=>:) op2)))))) = [doubleNagHandle((F (Identity ((:~:) (F (Identity (BinOp op1 (:=>:) op2))))))), doubleNagHandle((F (Identity ((:~:) (F (Identity (BinOp op1 (:<=:) op2)))))))]
 
 
 --delete element form list
@@ -112,9 +106,6 @@ deleteFromList x (y:ys)
 	    | x== y = deleteFromList x ys
 	    | otherwise = y : deleteFromList x ys
 
---add element to list
-addToList1 y x = y ++ [x]
-addToList2 y x z = y ++ [x] ++ [z]
 
 isLiter :: [Formula] -> Bool
 isLiter [] = True
@@ -122,25 +113,24 @@ isLiter (x:xs) | not(isAlphaForm x) && not(isBetaForm x) && isLiter xs = True
 	       | otherwise = False
 
 tableauxForm :: Formula -> Formula
-tableauxForm formula = doubleNag(F (Identity ((:~:) formula)))
+tableauxForm formula = doubleNagHandle(F (Identity ((:~:) formula)))
 
 
 tableauBranchBeta x list 
-	| elem ( doubleNag(F (Identity ((:~:) x))) ) list = []
+	| elem ( doubleNagHandle(F (Identity ((:~:) x))) ) list = []
 	| otherwise = list ++ [x] 
 tableauBranchAlpha x y list
-	| elem ( doubleNag(F (Identity ((:~:) x))) ) list = []
-	| elem ( doubleNag(F (Identity ((:~:) y))) ) list = []
-	| doubleNag(F (Identity ((:~:) x))) == y = []
+	| elem ( doubleNagHandle(F (Identity ((:~:) x))) ) list = []
+	| elem ( doubleNagHandle(F (Identity ((:~:) y))) ) list = []
+	| doubleNagHandle(F (Identity ((:~:) x))) == y = []
 	| otherwise = list ++ [x] ++ [y]
 
 branchHandle list 
 	| list == [] = []
-	| otherwise = (tranD list)
+	| otherwise = (tableaux list)
 
-tranD f | isLiter f = [f]
---tranD [[]] = [[]]
-tranD (x:xs) 
+tableaux f | isLiter f = [f]
+tableaux (x:xs) 
 	    | isBetaForm x = t1++t2
 	    | isAlphaForm x = t3
 	    | otherwise = t4
@@ -156,28 +146,25 @@ tranD (x:xs)
 
 	
 
---closeTableaux :: [[Formula]]->[Formula]->[Formula]-> Bool
+closeTableaux :: [[Formula]]-> Bool
 closeTableaux list
 	| list == [] = True
 	| otherwise = False 
 
 
-tableau x 
-	| closeTableaux x = []
-	| otherwise = x
 
 isTheoremStr str = closeTableaux z
   where x = parse str
 	r = removeComment x
 	y = getFormula r
-	z = tranD [y]
+	z = tableaux [y]
 
 isTheoremFile file = closeTableaux z
   where x = parseFile file
 	xx = unsafePerformIO x
 	r = removeComment xx
 	y = getFormula r
-	z = tranD [y]
+	z = tableaux [y]
 
 
 testFile file = z
@@ -185,10 +172,10 @@ testFile file = z
 	xx = unsafePerformIO x
 	r = removeComment xx
 	y = getFormula r
-	z = tranD [y]
+	z = tableaux [y]
 
 testStr str = z
   where x = parse str
 	r = removeComment x
 	y = getFormula r
-	z = tranD [y]
+	z = tableaux [y]
